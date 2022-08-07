@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -14,32 +15,35 @@ import (
 )
 
 type Config struct {
-	file     string
-	speed    int
-	fps      int
-	width    int
-	height   int
-	quality  int
-	codec    string
-	duration time.Duration
-	outFile  string
+	file        string
+	speed       int
+	fps         int
+	width       int
+	height      int
+	quality     int
+	prevQuality int
+	codec       string
+	duration    time.Duration
+	outFile     string
 }
 
-var stickerSize = 512
+var stickerWidthOrHeight = 512
 var stickerDuration = 3 * time.Second
 var stickerExtension = ".webm"
-var stickerQuality = 800
+var stickerQuality = 1024
+var stickerSize = int64(256) * 1024
 
 var defaultCfg = Config{
-	file:     "",
-	speed:    1,
-	fps:      30,
-	width:    stickerSize,
-	height:   stickerSize,
-	quality:  stickerQuality,
-	codec:    "libvpx-vp9",
-	duration: stickerDuration,
-	outFile:  "",
+	file:        "",
+	speed:       1,
+	fps:         30,
+	width:       stickerWidthOrHeight,
+	height:      stickerWidthOrHeight,
+	quality:     stickerQuality,
+	prevQuality: stickerQuality,
+	codec:       "libvpx-vp9",
+	duration:    stickerDuration,
+	outFile:     "",
 }
 
 func GetConfigForGif(config *configs.Config, gifCfg *image.Config) *Config {
@@ -61,12 +65,12 @@ func calculateStickerSize(gifCfg *image.Config) (int, int) {
 	var width, height int
 
 	if gifCfg.Width > gifCfg.Height {
-		scale := float64(stickerSize) / float64(gifCfg.Width)
-		width = stickerSize
+		scale := float64(stickerWidthOrHeight) / float64(gifCfg.Width)
+		width = stickerWidthOrHeight
 		height = int(math.Round(scale * float64(gifCfg.Height)))
 	} else {
-		scale := float64(stickerSize) / float64(gifCfg.Height)
-		height = stickerSize
+		scale := float64(stickerWidthOrHeight) / float64(gifCfg.Height)
+		height = stickerWidthOrHeight
 		width = int(math.Round(scale * float64(gifCfg.Width)))
 	}
 
@@ -74,6 +78,43 @@ func calculateStickerSize(gifCfg *image.Config) (int, int) {
 }
 
 func (cfg *Config) Run(io *consoleIO.ManagerIO) error {
+
+	var end bool
+	for !end {
+		err := cfg.TryToConvert(io)
+		if err != nil {
+			return err
+		}
+		end, err = cfg.CorrectQualityBySize()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (cfg *Config) CorrectQualityBySize() (bool, error) {
+	fileInfo, err := os.Stat(cfg.outFile)
+	if err != nil {
+		return false, err
+	}
+
+	if stickerSize-fileInfo.Size() < 0 { // Need to less file
+		cfg.prevQuality = cfg.quality
+		cfg.quality /= 2
+	} else {
+		if stickerSize-fileInfo.Size() < 16*1024 {
+			return true, nil
+		} else {
+			cfg.quality += cfg.quality / 2
+		}
+	}
+
+	return false, nil
+}
+
+func (cfg *Config) TryToConvert(io *consoleIO.ManagerIO) error {
 	args := cfg.toArgs()
 
 	out, err := runCMD("ffmpeg/ffmpeg.exe", args)
