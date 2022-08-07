@@ -2,6 +2,8 @@
 config/.env
 config/settings.json
 database/init.sql
+*.gif
+*.webm
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,goland
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,goland

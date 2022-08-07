@@ -28,6 +28,8 @@ func (io *ManagerIO) Read() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	in = strings.Trim(in, "\r\n")
+
 	if len(in) == 0 {
 		return "", fmt.Errorf("empty input")
 	}
@@ -45,8 +47,6 @@ func (io *ManagerIO) Request(question string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	answer = strings.Trim(answer, "\r\n")
 
 	return answer, nil
 }
