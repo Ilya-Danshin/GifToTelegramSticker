@@ -1,15 +1,15 @@
 package main
 
 import (
+	"fmt"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+
 	"GifToTelegramSticker/configs"
 	"GifToTelegramSticker/consoleIO"
 	"GifToTelegramSticker/ffmpeg"
 	"GifToTelegramSticker/files"
-	"fmt"
-
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 )
 
 func main() {

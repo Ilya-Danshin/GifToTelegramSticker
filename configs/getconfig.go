@@ -1,9 +1,10 @@
 package configs
 
 import (
-	"GifToTelegramSticker/consoleIO"
 	"strconv"
 	"time"
+
+	"GifToTelegramSticker/consoleIO"
 )
 
 type Config struct {

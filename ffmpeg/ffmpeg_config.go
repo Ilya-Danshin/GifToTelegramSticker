@@ -1,8 +1,6 @@
 package ffmpeg
 
 import (
-	"GifToTelegramSticker/configs"
-	"GifToTelegramSticker/consoleIO"
 	"fmt"
 	"image"
 	"math"
@@ -12,19 +10,21 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"GifToTelegramSticker/configs"
+	"GifToTelegramSticker/consoleIO"
 )
 
 type Config struct {
-	file        string
-	speed       int
-	fps         int
-	width       int
-	height      int
-	quality     int
-	prevQuality int
-	codec       string
-	duration    time.Duration
-	outFile     string
+	file     string
+	speed    int
+	fps      int
+	width    int
+	height   int
+	quality  int
+	codec    string
+	duration time.Duration
+	outFile  string
 }
 
 var stickerWidthOrHeight = 512
@@ -34,24 +34,26 @@ var stickerQuality = 1024
 var stickerSize = int64(256) * 1024
 
 var defaultCfg = Config{
-	file:        "",
-	speed:       1,
-	fps:         30,
-	width:       stickerWidthOrHeight,
-	height:      stickerWidthOrHeight,
-	quality:     stickerQuality,
-	prevQuality: stickerQuality,
-	codec:       "libvpx-vp9",
-	duration:    stickerDuration,
-	outFile:     "",
+	file:     "",
+	speed:    1,
+	fps:      30,
+	width:    stickerWidthOrHeight,
+	height:   stickerWidthOrHeight,
+	quality:  stickerQuality,
+	codec:    "libvpx-vp9",
+	duration: stickerDuration,
+	outFile:  "",
 }
 
 func GetConfigForGif(config *configs.Config, gifCfg *image.Config) *Config {
 	cfg := defaultCfg
 	cfg.file = config.GifPath
 	cfg.width, cfg.height = calculateStickerSize(gifCfg)
-	cfg.duration = config.Duration
 	cfg.outFile = changeFileExtension(config.GifPath)
+
+	if cfg.duration != time.Duration(0) {
+		cfg.duration = config.Duration
+	}
 
 	return &cfg
 }
@@ -101,7 +103,6 @@ func (cfg *Config) CorrectQualityBySize() (bool, error) {
 	}
 
 	if stickerSize-fileInfo.Size() < 0 { // Need to less file
-		cfg.prevQuality = cfg.quality
 		cfg.quality /= 2
 	} else {
 		if stickerSize-fileInfo.Size() < 16*1024 {
