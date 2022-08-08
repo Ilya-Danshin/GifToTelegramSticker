@@ -19,7 +19,9 @@ func GetConfig(IO *consoleIO.ManagerIO) (*Config, error) {
 	}
 
 	cut, err := IO.Request("Duration, seconds: ")
-	if err != nil {
+	if err.Error() == "empty input" {
+		cut = "0"
+	} else if err != nil {
 		return nil, err
 	}
 

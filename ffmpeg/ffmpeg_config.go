@@ -51,7 +51,7 @@ func GetConfigForGif(config *configs.Config, gifCfg *image.Config) *Config {
 	cfg.width, cfg.height = calculateStickerSize(gifCfg)
 	cfg.outFile = changeFileExtension(config.GifPath)
 
-	if cfg.duration != time.Duration(0) {
+	if config.Duration != time.Duration(0) {
 		cfg.duration = config.Duration
 	}
 

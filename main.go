@@ -24,10 +24,15 @@ func main() {
 	gifConfig, err := files.GetImageConfig(userConfig.GifPath)
 	if err != nil {
 		fmt.Printf("Get image error: %s", err.Error())
+		return
 	}
 
 	cfg := ffmpeg.GetConfigForGif(userConfig, gifConfig)
 
-	cfg.Run(IO)
+	err = cfg.Run(IO)
+	if err != nil {
+		fmt.Printf("Image convert error: %s", err.Error())
+		return
+	}
 
 }
